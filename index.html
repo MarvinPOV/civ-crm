@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIV CRM</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--red:#C0392B;--red-dark:#96281B;--red-light:#FDEDEC;--orange:#E67E22;--orange-light:#FEF5E7;--green:#1E8449;--green-light:#EAFAF1;--blue:#1A5276;--blue-light:#EBF5FB;--gray:#5D6D7E;--gray-light:#F4F6F7;--gray-lighter:#F8F9FA;--border:#E5E8EA;--border-dark:#CDD3D8;--text:#1C2833;--text-muted:#7F8C8D;--text-light:#AAB7B8;--white:#fff;--sidebar-bg:#1a2332;--radius:10px;--radius-sm:6px;--shadow:0 1px 3px rgba(0,0,0,.08);}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--gray-lighter);color:var(--text);font-size:14px;line-height:1.5;}
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--sidebar-bg);}
+.login-card{background:#fff;border-radius:14px;padding:40px 36px;width:100%;max-width:380px;}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-logo .brand{font-size:20px;font-weight:700;}
+.login-logo .brand span{color:var(--red);}
+.login-logo .sub{font-size:12px;color:var(--text-muted);margin-top:3px;}
+.login-card label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;}
+.login-card input{width:100%;border:1px solid var(--border-dark);border-radius:var(--radius-sm);padding:10px 13px;font-size:14px;outline:none;margin-bottom:16px;}
+.login-card input:focus{border-color:var(--red);}
+.btn-login{width:100%;background:var(--red);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px;font-size:14px;font-weight:600;cursor:pointer;}
+.btn-login:hover{background:var(--red-dark);}
+.login-error{font-size:12px;color:var(--red);text-align:center;margin-top:10px;min-height:18px;}
+#app{display:none;height:100vh;overflow:hidden;}
+.layout{display:flex;height:100%;}
+.sidebar{width:230px;background:var(--sidebar-bg);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
+.sidebar-logo{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.07);}
+.sidebar-logo .brand{font-size:14px;font-weight:700;color:#fff;}
+.sidebar-logo .brand span{color:#E74C3C;}
+.sidebar-logo .sub{font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;}
+.nav{padding:10px 0;flex:1;}
+.nav-section{font-size:10px;color:rgba(255,255,255,.28);padding:14px 18px 4px;letter-spacing:.09em;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;font-size:13px;color:rgba(255,255,255,.55);cursor:pointer;border-left:3px solid transparent;transition:all .12s;user-select:none;}
+.nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85);}
+.nav-item.active{background:rgba(192,57,43,.2);color:#fff;border-left-color:var(--red);}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;}
+.nav-item.ai-nav{background:rgba(142,68,173,.15);color:rgba(255,255,255,.8);border-left:3px solid #8E44AD;}
+.nav-item.ai-nav:hover,.nav-item.ai-nav.active{background:rgba(142,68,173,.3);color:#fff;border-left-color:#8E44AD;}
+.sidebar-footer{padding:14px 18px;border-top:1px solid rgba(255,255,255,.07);}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.user-pill{display:flex;align-items:center;gap:10px;}
+.user-info .name{font-size:12px;color:rgba(255,255,255,.8);font-weight:500;}
+.user-info .role-tag{font-size:10px;color:rgba(255,255,255,.35);}
+.btn-logout{background:none;border:none;color:rgba(255,255,255,.3);font-size:11px;cursor:pointer;padding:2px 0;margin-top:8px;display:block;}
+.btn-logout:hover{color:rgba(255,255,255,.6);}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:13px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar-title{font-size:15px;font-weight:600;}
+.btn{padding:7px 14px;border-radius:var(--radius-sm);font-size:13px;cursor:pointer;border:1px solid var(--border-dark);background:#fff;color:var(--text);font-weight:500;}
+.btn:hover{background:var(--gray-light);}
+.btn-primary{background:var(--red);color:#fff;border-color:var(--red);}
+.btn-primary:hover{background:var(--red-dark);}
+.page-content{flex:1;overflow-y:auto;padding:24px;}
+.view{display:none;}
+.view.active{display:block;}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;}
+.metric-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);}
+.metric-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+.metric-val{font-size:23px;font-weight:700;line-height:1;}
+.metric-sub{font-size:11px;color:var(--text-muted);margin-top:4px;}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;}
+.bg{background:var(--green-light);color:var(--green);}
+.br{background:var(--red-light);color:var(--red);}
+.bo{background:var(--orange-light);color:var(--orange);}
+.bb{background:var(--blue-light);color:var(--blue);}
+.bgr{background:var(--gray-light);color:var(--gray);}
+.kanban{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:24px;}
+.k-col{background:var(--gray-light);border-radius:var(--radius);padding:10px;}
+.k-col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.k-col-title{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;}
+.k-count{font-size:11px;background:#fff;border:1px solid var(--border);border-radius:20px;padding:1px 7px;color:var(--text-muted);}
+.k-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 11px;margin-bottom:7px;border-left:3px solid #ccc;transition:box-shadow .12s;}
+.k-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.k-card-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.k-card-meta{font-size:11px;color:var(--text-muted);}
+.k-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+.progress-bar{height:3px;background:var(--border);border-radius:2px;flex:1;margin-right:8px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:2px;}
+.panel{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:0;box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden;}
+.panel-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);}
+.panel-title{font-size:14px;font-weight:600;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;padding:10px 18px;text-align:left;background:var(--gray-lighter);border-bottom:1px solid var(--border);}
+td{padding:11px 18px;font-size:13px;border-bottom:1px solid var(--border);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--gray-lighter);}
+.td-muted{color:var(--text-muted);}
+.td-amount{font-weight:600;color:var(--green);}
+.td-pending{font-weight:600;color:var(--orange);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:14px;padding:28px 28px 24px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:20px;}
+.form-row{margin-bottom:14px;}
+.form-row label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em;}
+.form-row input,.form-row select,.form-row textarea{width:100%;border:1px solid var(--border-dark);border-radius:var(--radius-sm);padding:9px 12px;font-size:13px;outline:none;font-family:inherit;}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--red);}
+.form-row textarea{resize:vertical;min-height:70px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
+#view-asistente{flex-direction:column;height:100%;}
+#view-asistente.active{display:flex;}
+.ai-header{background:#2C1654;padding:20px 24px;color:#fff;flex-shrink:0;}
+.ai-header-title{font-size:16px;font-weight:700;margin-bottom:2px;}
+.ai-header-sub{font-size:12px;opacity:.65;}
+.ai-caps{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.ai-cap{background:rgba(255,255,255,.12);border-radius:20px;padding:4px 11px;font-size:11px;color:rgba(255,255,255,.85);}
+.ai-messages{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:14px;}
+.ai-msg{display:flex;gap:10px;max-width:85%;}
+.ai-msg.user{flex-direction:row-reverse;align-self:flex-end;}
+.ai-bubble{padding:11px 14px;border-radius:12px;font-size:13px;line-height:1.6;}
+.ai-msg.assistant .ai-bubble{background:#fff;border:1px solid var(--border);border-radius:4px 12px 12px 12px;}
+.ai-msg.user .ai-bubble{background:#6C3483;color:#fff;border-radius:12px 4px 12px 12px;}
+.ai-av-bot{width:30px;height:30px;border-radius:50%;background:#6C3483;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px;}
+.ai-av-usr{width:30px;height:30px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px;}
+.ai-action{background:var(--green-light);border:1px solid #A9DFBF;border-radius:8px;padding:10px 13px;margin-top:8px;font-size:12px;color:var(--green);}
+.ai-action strong{display:block;margin-bottom:3px;font-size:13px;}
+.ai-typing-wrap{display:flex;gap:10px;}
+.ai-typing{display:flex;align-items:center;gap:5px;padding:11px 14px;background:#fff;border:1px solid var(--border);border-radius:4px 12px 12px 12px;}
+.ai-typing span{width:6px;height:6px;background:var(--text-muted);border-radius:50%;animation:bounce 1s infinite;}
+.ai-typing span:nth-child(2){animation-delay:.15s;}
+.ai-typing span:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-5px);}}
+.ai-input-area{padding:14px 24px;background:#fff;border-top:1px solid var(--border);flex-shrink:0;}
+.ai-sugs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.ai-sug{background:var(--gray-lighter);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--text-muted);cursor:pointer;}
+.ai-sug:hover{background:#F0E6FA;border-color:#C39BD3;color:#6C3483;}
+.ai-input-row{display:flex;gap:10px;align-items:flex-end;}
+.ai-input-row textarea{flex:1;border:1px solid var(--border-dark);border-radius:10px;padding:10px 14px;font-size:13px;font-family:inherit;resize:none;outline:none;max-height:100px;line-height:1.5;}
+.ai-input-row textarea:focus{border-color:#8E44AD;}
+.ai-send{background:#6C3483;color:#fff;border:none;border-radius:10px;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ai-send:hover{background:#5B2C6F;}
+.ai-send svg{width:16px;height:16px;}
+#toast{position:fixed;bottom:24px;right:24px;background:#1C2833;color:#fff;padding:11px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;z-index:999;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;}
+#toast.show{opacity:1;transform:translateY(0);}
+#loading{display:flex;align-items:center;justify-content:center;height:100vh;background:var(--sidebar-bg);color:rgba(255,255,255,.5);font-size:14px;flex-direction:column;gap:12px;}
+.spinner{width:28px;height:28px;border:2px solid rgba(255,255,255,.15);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media(max-width:680px){.sidebar{display:none;}.kanban{grid-template-columns:repeat(2,1fr);}.metrics{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div id="loading"><div class="spinner"></div><span>Cargando CIV CRM…</span></div>
+<div id="login-screen" style="display:none;">
+  <div class="login-card">
+    <div class="login-logo"><div class="brand">Cocinas <span>Integrales</span> Veracruz</div><div class="sub">Sistema de gestión de proyectos</div></div>
+    <label>Correo electrónico</label><input type="email" id="login-email" placeholder="tu@correo.com">
+    <label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••••">
+    <button class="btn-login" id="btn-login">Entrar</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+<div id="app"><div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><div class="brand">Cocinas <span>Integrales</span></div><div class="sub">Veracruz — CRM</div></div>
+    <nav class="nav">
+      <div class="nav-section">Principal</div>
+      <div class="nav-item active" data-view="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+      <div class="nav-item" data-view="clientes" data-roles="admin,asesor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Clientes</div>
+      <div class="nav-item" data-view="proyectos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Proyectos</div>
+      <div class="nav-item" data-view="pagos" data-roles="admin,asesor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Pagos</div>
+      <div class="nav-section">IA</div>
+      <div class="nav-item ai-nav" data-view="asistente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>Asistente IA</div>
+      <div class="nav-section">Comunicación</div>
+      <div class="nav-item" data-view="whatsapp" data-roles="admin,asesor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>WhatsApp</div>
+      <div class="nav-section">Documentos</div>
+      <div class="nav-item" data-view="contratos" data-roles="admin,asesor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Contratos</div>
+      <div class="nav-item" data-view="fotos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Fotos de obra</div>
+      <div class="nav-section admin-only">Admin</div>
+      <div class="nav-item admin-only" data-view="usuarios" data-roles="admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>Usuarios</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-pill"><div class="avatar" id="user-avatar">?</div><div class="user-info"><div class="name" id="user-name">Cargando…</div><div class="role-tag" id="user-role-tag"></div></div></div>
+      <button class="btn-logout" id="btn-logout">Cerrar sesión</button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="topbar"><div class="topbar-title" id="topbar-title">Dashboard</div><div id="topbar-actions"></div></div>
+    <div class="page-content" id="page-content">
+      <div class="view active" id="view-dashboard">
+        <div class="metrics">
+          <div class="metric-card"><div class="metric-label">Proyectos activos</div><div class="metric-val" id="m-proyectos">—</div><div class="metric-sub">En curso</div></div>
+          <div class="metric-card" id="metric-cobrado-card"><div class="metric-label">Cobrado</div><div class="metric-val" id="m-cobrado">—</div><div class="metric-sub" id="m-cobrado-sub"></div></div>
+          <div class="metric-card"><div class="metric-label">Mensajes sin leer</div><div class="metric-val" id="m-wa">—</div><div class="metric-sub">WhatsApp</div></div>
+          <div class="metric-card"><div class="metric-label">Clientes</div><div class="metric-val" id="m-clientes">—</div><div class="metric-sub">Registrados</div></div>
+        </div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:10px;">Pipeline de proyectos</div>
+        <div class="kanban" id="kanban-board"></div>
+      </div>
+      <div class="view" id="view-clientes"><div class="panel"><div class="panel-head"><span class="panel-title">Clientes</span><button class="btn btn-primary" id="btn-nuevo-cliente">+ Nuevo cliente</button></div><table><thead><tr><th>Nombre</th><th>Teléfono</th><th>Ciudad</th><th>Fuente</th><th>Fecha</th></tr></thead><tbody id="clientes-tbody"><tr><td colspan="5" class="td-muted" style="text-align:center;padding:24px;">Cargando…</td></tr></tbody></table></div></div>
+      <div class="view" id="view-proyectos"><div class="panel"><div class="panel-head"><span class="panel-title">Proyectos</span><button class="btn btn-primary" id="btn-nuevo-proyecto">+ Nuevo proyecto</button></div><table><thead><tr><th>Proyecto</th><th>Cliente</th><th>Estado</th><th class="precio-col">Monto</th><th>Fecha</th></tr></thead><tbody id="proyectos-tbody"><tr><td colspan="5" class="td-muted" style="text-align:center;padding:24px;">Cargando…</td></tr></tbody></table></div></div>
+      <div class="view" id="view-pagos"><div class="panel"><div class="panel-head"><span class="panel-title">Pagos</span><button class="btn btn-primary" id="btn-nuevo-pago">+ Registrar pago</button></div><table><thead><tr><th>Concepto</th><th>Proyecto</th><th>Monto</th><th>Método</th><th>Fecha</th><th>Estado</th></tr></thead><tbody id="pagos-tbody"><tr><td colspan="6" class="td-muted" style="text-align:center;padding:24px;">Cargando…</td></tr></tbody></table></div></div>
+      <div class="view" id="view-whatsapp"><div class="panel"><div class="panel-head"><span class="panel-title">WhatsApp</span></div><table><thead><tr><th>Cliente</th><th>Último mensaje</th><th>Fecha</th><th>Estado</th></tr></thead><tbody id="wa-tbody"><tr><td colspan="4" class="td-muted" style="text-align:center;padding:24px;">Cargando…</td></tr></tbody></table></div></div>
+      <div class="view" id="view-contratos"><div class="panel"><div class="panel-head"><span class="panel-title">Contratos</span></div><table><thead><tr><th>Contrato</th><th>Cliente</th><th>Proyecto</th><th>Fecha firma</th><th>Estado</th></tr></thead><tbody id="contratos-tbody"><tr><td colspan="5" class="td-muted" style="text-align:center;padding:24px;">Cargando…</td></tr></tbody></table></div></div>
+      <div class="view" id="view-fotos"><div class="panel"><div class="panel-head"><span class="panel-title">Fotos de obra</span></div><div style="padding:24px;color:var(--text-muted);">Módulo en construcción.</div></div></div>
+      <div class="view" id="view-usuarios"><div class="panel"><div class="panel-head"><span class="panel-title">Usuarios</span></div><table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Creado</th></tr></thead><tbody id="usuarios-tbody"><tr><td colspan="4" class="td-muted" style="text-align:center;padding:24px;">Cargando…</td></tr></tbody></table></div></div>
+      <div class="view" id="view-asistente">
+        <div class="ai-header">
+          <div class="ai-header-title">Asistente IA — Cocinas Integrales Veracruz</div>
+          <div class="ai-header-sub">Dime qué necesitas y lo registro por ti</div>
+          <div class="ai-caps"><span class="ai-cap">Registrar clientes</span><span class="ai-cap">Crear proyectos</span><span class="ai-cap">Actualizar estados</span><span class="ai-cap">Registrar pagos</span><span class="ai-cap">Consultas</span></div>
+        </div>
+        <div class="ai-messages" id="ai-messages"></div>
+        <div class="ai-input-area">
+          <div class="ai-sugs" id="ai-sugs">
+            <button class="ai-sug" onclick="sug(this)">¿Cuántos proyectos activos tengo?</button>
+            <button class="ai-sug" onclick="sug(this)">Agrega un nuevo cliente</button>
+            <button class="ai-sug" onclick="sug(this)">¿Cuánto me deben en total?</button>
+            <button class="ai-sug" onclick="sug(this)">Cambia el estado de un proyecto</button>
+          </div>
+          <div id="ai-attachments" style="display:none;gap:8px;flex-wrap:wrap;margin-bottom:10px;"></div>
+          <div class="ai-input-row">
+            <button onclick="document.getElementById('ai-file-input').click()" style="background:none;border:1px solid var(--border-dark);border-radius:10px;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-muted);transition:all .12s;" title="Adjuntar foto o documento">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            </button>
+            <input type="file" id="ai-file-input" multiple accept="image/*,.pdf,.txt,.csv,.doc,.docx" style="display:none;" onchange="handleAIFiles(this)">
+            <textarea id="ai-input" placeholder="Ej: Agrega a Juan Pérez de Veracruz, llegó por Facebook… o adjunta una foto/PDF" rows="1"></textarea>
+            <button class="ai-send" onclick="sendMsg()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+          </div>
+          <div style="font-size:11px;color:var(--text-light);margin-top:6px;padding-left:2px;">Acepta fotos, contratos PDF, cotizaciones, chats de WhatsApp (.txt) — extrae información automáticamente</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div>
+<div class="modal-overlay" id="modal-cliente"><div class="modal"><div class="modal-title">Nuevo cliente</div><div class="form-row"><label>Nombre completo</label><input type="text" id="c-nombre" placeholder="Josué Vázquez Silva"></div><div class="form-row"><label>Teléfono</label><input type="tel" id="c-tel" placeholder="229 000 0000"></div><div class="form-row"><label>Ciudad</label><input type="text" id="c-ciudad" placeholder="Boca del Río"></div><div class="form-row"><label>Fuente</label><select id="c-fuente"><option>Facebook</option><option>Instagram</option><option>Referido</option><option>Directo</option><option>Otro</option></select></div><div class="form-row"><label>Notas</label><textarea id="c-notas" placeholder="Observaciones…"></textarea></div><div class="modal-actions"><button class="btn" onclick="closeModal('modal-cliente')">Cancelar</button><button class="btn btn-primary" id="btn-save-cliente">Guardar</button></div></div></div>
+<div class="modal-overlay" id="modal-proyecto"><div class="modal" style="max-width:520px;">
+<div class="modal-title">Nuevo proyecto</div>
+<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">Datos del cliente</div>
+<div class="form-row"><label>Nombre del proyecto</label><input type="text" id="p-nombre" placeholder="Ej. Cocina integral Josué"></div>
+<div class="form-row"><label>Cliente</label><select id="p-cliente"><option value="">Selecciona…</option></select></div>
+<div class="form-row"><label>Dirección de la obra</label><input type="text" id="p-direccion" placeholder="Calle, colonia, ciudad"></div>
+<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);">Datos de la cocina</div>
+<div class="form-row"><label>Descripción de la cocina</label><textarea id="p-desc-cocina" placeholder="Materiales, medidas, colores, acabados…" style="min-height:80px;"></textarea></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+  <div class="form-row"><label>Precio cocina (cliente) $</label><input type="number" id="p-precio-cocina" placeholder="28000"></div>
+  <div class="form-row"><label>Precio técnico (costo) $</label><input type="number" id="p-precio-tecnico" placeholder="18000"></div>
+</div>
+<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);">Seguimiento</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+  <div class="form-row"><label>Estado</label><select id="p-estado"><option>Lead</option><option>Cotizado</option><option>Contrato</option><option>Instalación</option><option>Entregado</option></select></div>
+  <div class="form-row"><label>Fecha de inicio</label><input type="date" id="p-fecha"></div>
+</div>
+<div class="form-row"><label>Fecha de entrega estimada</label><input type="date" id="p-fecha-entrega"></div>
+<div class="form-row">
+  <label>Fotos del proyecto</label>
+  <div style="border:1px dashed var(--border-dark);border-radius:var(--radius-sm);padding:14px;text-align:center;cursor:pointer;background:var(--gray-lighter);" onclick="document.getElementById('p-fotos-input').click()">
+    <div style="font-size:13px;color:var(--text-muted);">📎 Toca para subir fotos</div>
+    <div style="font-size:11px;color:var(--text-light);margin-top:3px;">JPG, PNG — múltiples archivos</div>
+  </div>
+  <input type="file" id="p-fotos-input" multiple accept="image/*" style="display:none;" onchange="previewFotos(this)">
+  <div id="p-fotos-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
+</div>
+<div class="modal-actions"><button class="btn" onclick="closeModal('modal-proyecto')">Cancelar</button><button class="btn btn-primary" id="btn-save-proyecto">Guardar proyecto</button></div>
+</div></div>
+<div class="modal-overlay" id="modal-pago"><div class="modal"><div class="modal-title">Registrar pago</div><div class="form-row"><label>Concepto</label><input type="text" id="pg-concepto" placeholder="Anticipo 50%"></div><div class="form-row"><label>Proyecto</label><select id="pg-proyecto"><option value="">Selecciona…</option></select></div><div class="form-row"><label>Monto ($)</label><input type="number" id="pg-monto" placeholder="14000"></div><div class="form-row"><label>Método</label><select id="pg-metodo"><option>Transferencia</option><option>Efectivo</option><option>Tarjeta</option></select></div><div class="form-row"><label>Estado</label><select id="pg-estado"><option>Recibido</option><option>Pendiente</option></select></div><div class="form-row"><label>Fecha</label><input type="date" id="pg-fecha"></div><div class="modal-actions"><button class="btn" onclick="closeModal('modal-pago')">Cancelar</button><button class="btn btn-primary" id="btn-save-pago">Guardar</button></div></div></div>
+<div id="toast"></div>
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import{getFirestore,collection,doc,getDoc,getDocs,addDoc,updateDoc,serverTimestamp,query,orderBy,where}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+const cfg={apiKey:"AIzaSyAMqQijV7pLDJDPV1eVwUbUVNk6UUiW8kM",authDomain:"crm-civ.firebaseapp.com",projectId:"crm-civ",storageBucket:"crm-civ.firebasestorage.app",messagingSenderId:"611368571506",appId:"1:611368571506:web:683be4af4a8f68889da8eb"};
+const fb=initializeApp(cfg);const auth=getAuth(fb);const db=getFirestore(fb);
+let role=null;
+const EC={'Lead':'#95A5A6','Cotizado':'#3498DB','Contrato':'#E67E22','Instalación':'#8E44AD','Entregado':'#27AE60'};
+const RL={admin:'Administrador',asesor:'Asesor de proyecto',tecnico:'Técnico'};
+window.closeModal=id=>document.getElementById(id).classList.remove('open');
+const openM=id=>document.getElementById(id).classList.add('open');
+const toast=msg=>{const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);};
+const fmt=n=>n?'$'+Number(n).toLocaleString('es-MX'):'—';
+const fd=ts=>{if(!ts)return'—';const d=ts.toDate?ts.toDate():new Date(ts);return d.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});};
+function applyRole(r){document.querySelectorAll('[data-roles]').forEach(el=>el.style.display=el.getAttribute('data-roles').split(',').includes(r)?'':'none');document.querySelectorAll('.admin-only').forEach(el=>el.style.display=r==='admin'?'':'none');if(r==='tecnico'){document.querySelectorAll('.precio-col').forEach(el=>el.style.display='none');document.getElementById('metric-cobrado-card').style.display='none';}}
+const VT={dashboard:'Dashboard',clientes:'Clientes',proyectos:'Proyectos',pagos:'Pagos',whatsapp:'WhatsApp',contratos:'Contratos',fotos:'Fotos de obra',usuarios:'Usuarios',asistente:'Asistente IA'};
+function nav(v){const isAI=v==='asistente';const pc=document.getElementById('page-content');pc.style.padding=isAI?'0':'24px';pc.style.display=isAI?'flex':'block';pc.style.flexDirection=isAI?'column':'';pc.style.overflow=isAI?'hidden':'auto';document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));const vEl=document.getElementById('view-'+v);if(vEl)vEl.classList.add('active');const nEl=document.querySelector('.nav-item[data-view="'+v+'"]');if(nEl)nEl.classList.add('active');document.getElementById('topbar-title').textContent=VT[v]||v;load(v);}
+document.querySelectorAll('.nav-item[data-view]').forEach(el=>el.addEventListener('click',()=>nav(el.getAttribute('data-view'))));
+async function load(v){if(v==='dashboard')await ldash();else if(v==='clientes')await lclientes();else if(v==='proyectos')await lproy();else if(v==='pagos')await lpagos();else if(v==='whatsapp')await lwa();else if(v==='contratos')await lcontratos();else if(v==='usuarios')await lusuarios();else if(v==='asistente')initAI();}
+async function ldash(){const[pS,cS,wS,pgS]=await Promise.all([getDocs(collection(db,'proyectos')),getDocs(collection(db,'clientes')),getDocs(query(collection(db,'whatsapp'),where('estado','==','Sin leer'))),getDocs(collection(db,'pagos'))]);const ps=pS.docs.map(d=>({id:d.id,...d.data()}));document.getElementById('m-proyectos').textContent=ps.filter(p=>p.estado!=='Entregado').length;document.getElementById('m-clientes').textContent=cS.size;document.getElementById('m-wa').textContent=wS.size;if(role!=='tecnico'){const pgs=pgS.docs.map(d=>d.data());const cb=pgs.filter(p=>p.estado==='Recibido').reduce((s,p)=>s+(Number(p.monto)||0),0);const tot=pgs.reduce((s,p)=>s+(Number(p.monto)||0),0);document.getElementById('m-cobrado').textContent=fmt(cb);document.getElementById('m-cobrado-sub').textContent='de '+fmt(tot)+' total';}const board=document.getElementById('kanban-board');board.innerHTML='';['Lead','Cotizado','Contrato','Instalación','Entregado'].forEach(e=>{const col=ps.filter(p=>p.estado===e);const c=EC[e]||'#ccc';const cards=col.map(p=>{const m=role!=='tecnico'&&p.monto?fmt(p.monto):'';const sb=['Contrato','Instalación'].includes(e);return'<div class="k-card" style="border-left-color:'+c+'"><div class="k-card-name">'+(p.nombre||'—')+'</div><div class="k-card-meta">'+m+'</div>'+(sb?'<div class="k-card-footer"><div class="progress-bar"><div class="progress-fill" style="width:'+(p.avance||0)+'%;background:'+c+'"></div></div><span style="font-size:11px;color:var(--text-muted)">'+(p.avance||0)+'%</span></div>':'')+'</div>';}).join('')||'<div style="font-size:11px;color:var(--text-light);text-align:center;padding:8px 0;">Sin proyectos</div>';board.innerHTML+='<div class="k-col"><div class="k-col-header"><span class="k-col-title">'+e+'</span><span class="k-count">'+col.length+'</span></div>'+cards+'</div>';});}
+async function lclientes(){const s=await getDocs(query(collection(db,'clientes'),orderBy('creado','desc')));const tb=document.getElementById('clientes-tbody');if(s.empty){tb.innerHTML='<tr><td colspan="5" class="td-muted" style="text-align:center;padding:24px;">Sin clientes.</td></tr>';return;}tb.innerHTML=s.docs.map(d=>{const c=d.data();return'<tr><td><strong>'+(c.nombre||'—')+'</strong></td><td>'+(c.telefono||'—')+'</td><td class="td-muted">'+(c.ciudad||'—')+'</td><td><span class="badge bb">'+(c.fuente||'—')+'</span></td><td class="td-muted">'+fd(c.creado)+'</td></tr>';}).join('');}
+async function lproy(){const[pS,cS]=await Promise.all([getDocs(query(collection(db,'proyectos'),orderBy('creado','desc'))),getDocs(collection(db,'clientes'))]);const cl={};cS.docs.forEach(d=>{cl[d.id]=d.data().nombre;});const tb=document.getElementById('proyectos-tbody');if(pS.empty){tb.innerHTML='<tr><td colspan="5" class="td-muted" style="text-align:center;padding:24px;">Sin proyectos.</td></tr>';return;}tb.innerHTML=pS.docs.map(d=>{const p=d.data();const c=EC[p.estado]||'#ccc';const sp=role!=='tecnico';return'<tr><td><strong>'+(p.nombre||'—')+'</strong></td><td>'+(cl[p.clienteId]||'—')+'</td><td><span class="badge" style="background:'+c+'22;color:'+c+'">'+(p.estado||'—')+'</span></td>'+(sp?'<td class="td-amount">'+fmt(p.monto)+'</td>':'')+'<td class="td-muted">'+fd(p.fechaInicio)+'</td></tr>';}).join('');}
+async function lpagos(){const[pgS,pS]=await Promise.all([getDocs(query(collection(db,'pagos'),orderBy('creado','desc'))),getDocs(collection(db,'proyectos'))]);const pr={};pS.docs.forEach(d=>{pr[d.id]=d.data().nombre;});const tb=document.getElementById('pagos-tbody');if(pgS.empty){tb.innerHTML='<tr><td colspan="6" class="td-muted" style="text-align:center;padding:24px;">Sin pagos.</td></tr>';return;}tb.innerHTML=pgS.docs.map(d=>{const p=d.data();const bc=p.estado==='Recibido'?'bg':p.estado==='Pendiente'?'bo':'br';return'<tr><td><strong>'+(p.concepto||'—')+'</strong></td><td>'+(pr[p.proyectoId]||'—')+'</td><td class="'+(p.estado==='Recibido'?'td-amount':'td-pending')+'">'+fmt(p.monto)+'</td><td class="td-muted">'+(p.metodo||'—')+'</td><td class="td-muted">'+fd(p.fecha)+'</td><td><span class="badge '+bc+'">'+(p.estado||'—')+'</span></td></tr>';}).join('');}
+async function lwa(){const s=await getDocs(query(collection(db,'whatsapp'),orderBy('fechaUltimo','desc')));const tb=document.getElementById('wa-tbody');if(s.empty){tb.innerHTML='<tr><td colspan="4" class="td-muted" style="text-align:center;padding:24px;">Sin conversaciones.</td></tr>';return;}tb.innerHTML=s.docs.map(d=>{const w=d.data();const bc=w.estado==='Sin leer'?'br':w.estado==='Seguimiento'?'bo':'bg';return'<tr><td><strong>'+(w.cliente||'—')+'</strong></td><td>'+(w.resumen||'—')+'</td><td class="td-muted">'+fd(w.fechaUltimo)+'</td><td><span class="badge '+bc+'">'+(w.estado||'—')+'</span></td></tr>';}).join('');}
+async function lcontratos(){const s=await getDocs(query(collection(db,'contratos'),orderBy('creado','desc')));const tb=document.getElementById('contratos-tbody');if(s.empty){tb.innerHTML='<tr><td colspan="5" class="td-muted" style="text-align:center;padding:24px;">Sin contratos.</td></tr>';return;}tb.innerHTML=s.docs.map(d=>{const c=d.data();return'<tr><td><strong>'+(c.nombre||'—')+'</strong></td><td>'+(c.cliente||'—')+'</td><td>'+(c.proyecto||'—')+'</td><td class="td-muted">'+fd(c.fechaFirma)+'</td><td><span class="badge '+(c.firmado?'bg':'bo')+'">'+(c.firmado?'Firmado':'Pendiente')+'</span></td></tr>';}).join('');}
+async function lusuarios(){const s=await getDocs(collection(db,'usuarios'));const tb=document.getElementById('usuarios-tbody');if(s.empty){tb.innerHTML='<tr><td colspan="4" class="td-muted" style="text-align:center;padding:24px;">Sin usuarios.</td></tr>';return;}tb.innerHTML=s.docs.map(d=>{const u=d.data();return'<tr><td><strong>'+(u.nombre||'—')+'</strong></td><td class="td-muted">'+(u.email||'—')+'</td><td>'+(RL[u.rol]||u.rol||'—')+'</td><td class="td-muted">'+fd(u.creado)+'</td></tr>';}).join('');}
+async function saveC(data){return(await addDoc(collection(db,'clientes'),{...data,creado:serverTimestamp()})).id;}
+async function saveP(data){return(await addDoc(collection(db,'proyectos'),{...data,avance:0,creado:serverTimestamp()})).id;}
+async function savePg(data){return(await addDoc(collection(db,'pagos'),{...data,creado:serverTimestamp()})).id;}
+async function updEstado(nombre,estado){const s=await getDocs(collection(db,'proyectos'));const m=s.docs.find(d=>d.data().nombre.toLowerCase().includes(nombre.toLowerCase()));if(!m)return null;await updateDoc(doc(db,'proyectos',m.id),{estado});return m.data().nombre;}
+async function getResumen(){const[pS,cS,pgS]=await Promise.all([getDocs(collection(db,'proyectos')),getDocs(collection(db,'clientes')),getDocs(collection(db,'pagos'))]);const ps=pS.docs.map(d=>d.data());const pgs=pgS.docs.map(d=>d.data());return{totalClientes:cS.size,activos:ps.filter(p=>p.estado!=='Entregado').length,totalProyectos:ps.length,cobrado:pgs.filter(p=>p.estado==='Recibido').reduce((s,p)=>s+(Number(p.monto)||0),0),pendiente:pgs.filter(p=>p.estado==='Pendiente').reduce((s,p)=>s+(Number(p.monto)||0),0),proyectos:ps.map(p=>({nombre:p.nombre,estado:p.estado,monto:p.monto}))};}
+async function getCls(){return(await getDocs(collection(db,'clientes'))).docs.map(d=>({id:d.id,...d.data()}));}
+window._db={saveC,saveP,savePg,updEstado,getResumen,getCls};
+async function popSel(sid,col,lf){const s=await getDocs(collection(db,col));const el=document.getElementById(sid);el.innerHTML='<option value="">Selecciona…</option>';s.docs.forEach(d=>{const o=document.createElement('option');o.value=d.id;o.textContent=d.data()[lf]||d.id;el.appendChild(o);});}
+document.getElementById('btn-nuevo-cliente').addEventListener('click',()=>openM('modal-cliente'));
+document.getElementById('btn-nuevo-proyecto').addEventListener('click',async()=>{await popSel('p-cliente','clientes','nombre');openM('modal-proyecto');});
+document.getElementById('btn-nuevo-pago').addEventListener('click',async()=>{await popSel('pg-proyecto','proyectos','nombre');openM('modal-pago');});
+document.getElementById('btn-save-cliente').addEventListener('click',async()=>{const n=document.getElementById('c-nombre').value.trim();if(!n){toast('El nombre es obligatorio');return;}await saveC({nombre:n,telefono:document.getElementById('c-tel').value.trim(),ciudad:document.getElementById('c-ciudad').value.trim(),fuente:document.getElementById('c-fuente').value,notas:document.getElementById('c-notas').value.trim()});closeModal('modal-cliente');toast('Cliente guardado');lclientes();});
+document.getElementById('btn-save-proyecto').addEventListener('click',async()=>{const n=document.getElementById('p-nombre').value.trim();const cid=document.getElementById('p-cliente').value;if(!n||!cid){toast('Nombre y cliente son obligatorios');return;}const precioCocina=Number(document.getElementById('p-precio-cocina').value)||0;const precioTecnico=Number(document.getElementById('p-precio-tecnico').value)||0;await saveP({nombre:n,clienteId:cid,estado:document.getElementById('p-estado').value,monto:precioCocina,precioTecnico,fechaInicio:document.getElementById('p-fecha').value,fechaEntrega:document.getElementById('p-fecha-entrega').value,descripcionCocina:document.getElementById('p-desc-cocina').value.trim(),direccion:document.getElementById('p-direccion').value.trim()});closeModal('modal-proyecto');toast('Proyecto guardado');ldash();});
+document.getElementById('btn-save-pago').addEventListener('click',async()=>{const co=document.getElementById('pg-concepto').value.trim();const pid=document.getElementById('pg-proyecto').value;if(!co||!pid){toast('Concepto y proyecto son obligatorios');return;}await savePg({concepto:co,proyectoId:pid,monto:Number(document.getElementById('pg-monto').value)||0,metodo:document.getElementById('pg-metodo').value,estado:document.getElementById('pg-estado').value,fecha:document.getElementById('pg-fecha').value});closeModal('modal-pago');toast('Pago registrado');lpagos();});
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+document.getElementById('btn-login').addEventListener('click',async()=>{const em=document.getElementById('login-email').value.trim();const pw=document.getElementById('login-pass').value;const er=document.getElementById('login-error');er.textContent='';if(!em||!pw){er.textContent='Ingresa tu correo y contraseña.';return;}try{await signInWithEmailAndPassword(auth,em,pw);}catch(e){er.textContent='Correo o contraseña incorrectos.';}});
+document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btn-login').click();});
+document.getElementById('btn-logout').addEventListener('click',()=>signOut(auth));
+onAuthStateChanged(auth,async user=>{
+  document.getElementById('loading').style.display='none';
+  if(!user){document.getElementById('app').style.display='none';document.getElementById('login-screen').style.display='flex';return;}
+  document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';
+  const ud=await getDoc(doc(db,'usuarios',user.uid));
+  if(ud.exists()){const d=ud.data();role=d.rol||'tecnico';const ini=(d.nombre||user.email).split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();document.getElementById('user-avatar').textContent=ini;document.getElementById('user-name').textContent=d.nombre||user.email;document.getElementById('user-role-tag').textContent=RL[role]||role;window._uname=d.nombre||user.email;}
+  else{role='tecnico';document.getElementById('user-name').textContent=user.email;}
+  applyRole(role);await ldash();
+});
+</script>
+<script>
+let aiOn=false,aiHist=[];
+function initAI(){if(aiOn)return;aiOn=true;addM('assistant','Hola'+(window._uname?', <strong>'+window._uname+'</strong>':'')+'. Soy tu asistente de CRM.<br><br>Puedo registrar clientes, crear proyectos, actualizar estados y registrar pagos — solo dímelo en lenguaje natural. ¿Qué necesitas?');}
+function addM(role,html,ac){const c=document.getElementById('ai-messages');const iu=role==='user';const ini=iu?(window._uname||'Tú').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase():'IA';const d=document.createElement('div');d.className='ai-msg '+role;d.innerHTML='<div class="'+(iu?'ai-av-usr':'ai-av-bot')+'">'+ini+'</div><div><div class="ai-bubble">'+html+'</div>'+(ac?'<div class="ai-action"><strong>'+ac.t+'</strong>'+ac.b+'</div>':'')+'</div>';c.appendChild(d);c.scrollTop=c.scrollHeight;}
+function addTyp(){const c=document.getElementById('ai-messages');const d=document.createElement('div');d.className='ai-typing-wrap';d.id='ai-typ';d.innerHTML='<div class="ai-av-bot">IA</div><div class="ai-typing"><span></span><span></span><span></span></div>';c.appendChild(d);c.scrollTop=c.scrollHeight;}
+function remTyp(){const t=document.getElementById('ai-typ');if(t)t.remove();}
+window.sug=function(btn){document.getElementById('ai-input').value=btn.textContent;document.getElementById('ai-sugs').style.display='none';sendMsg();};
+window.sendMsg=async function(){
+  const inp=document.getElementById('ai-input');const txt=inp.value.trim();
+  if(!txt&&aiAttachments.length===0)return;
+  inp.value='';inp.style.height='auto';document.getElementById('ai-sugs').style.display='none';
+
+  // Mostrar mensaje del usuario con adjuntos
+  let userHtml=txt?txt.replace(/</g,'&lt;'):'';
+  if(aiAttachments.length>0){
+    const previews=aiAttachments.map(a=>a.type==='image'?'<img src="data:'+a.mime+';base64,'+a.b64+'" style="max-width:160px;max-height:120px;border-radius:6px;border:1px solid rgba(255,255,255,.3);display:block;margin-top:6px;">':'<div style="background:rgba(255,255,255,.15);border-radius:6px;padding:6px 10px;margin-top:6px;font-size:12px;">📄 '+a.name+'</div>').join('');
+    userHtml+=(userHtml?'<br>':'')+previews;
+  }
+  addM('user',userHtml||'[Archivo adjunto]');
+
+  // Construir content array para la API
+  const contentParts=[];
+  aiAttachments.forEach(a=>{
+    if(a.type==='image'){
+      contentParts.push({type:'image',source:{type:'base64',media_type:a.mime,data:a.b64}});
+    } else if(a.type==='pdf'){
+      contentParts.push({type:'document',source:{type:'base64',media_type:'application/pdf',data:a.b64}});
+    } else if(a.type==='text'){
+      contentParts.push({type:'text',text:'[Archivo: '+a.name+']\n'+a.text});
+    }
+  });
+  if(txt)contentParts.push({type:'text',text:txt});
+  else if(contentParts.length>0)contentParts.push({type:'text',text:'Analiza este archivo. Si contiene datos de un cliente, proyecto, pago o contrato, extrae la información y dime si quieres que la registre en el CRM.'});
+
+  // Limpiar adjuntos
+  aiAttachments=[];
+  document.getElementById('ai-attachments').innerHTML='';
+  document.getElementById('ai-attachments').style.display='none';
+
+  aiHist.push({role:'user',content:contentParts});
+  addTyp();
+
+  let res={},cls=[];
+  try{res=await window._db.getResumen();cls=await window._db.getCls();}catch(e){}
+
+  const sys='Eres el asistente de CRM de Cocinas Integrales Veracruz, empresa de cocinas a medida en México.\n\nDATOS ACTUALES:\n- Clientes: '+(res.totalClientes||0)+'\n- Proyectos activos: '+(res.activos||0)+' / total: '+(res.totalProyectos||0)+'\n- Cobrado: $'+(res.cobrado||0).toLocaleString('es-MX')+' MXN\n- Por cobrar: $'+(res.pendiente||0).toLocaleString('es-MX')+' MXN\n- Proyectos: '+JSON.stringify(res.proyectos||[])+'\n- Clientes registrados: '+cls.map(c=>c.nombre).join(', ')+'\n\nANÁLISIS DE ARCHIVOS:\n- Imagen de cocina → describe brevemente y pregunta si registra el proyecto.\n- Foto de contrato o documento → extrae: nombre cliente, monto, fecha, tipo proyecto. Pregunta si lo guarda.\n- PDF de cotización → extrae datos del cliente y precio, ofrece crear proyecto.\n- Archivo .txt con chat de WhatsApp → analiza la conversación completa. Extrae: nombre del cliente, teléfono si aparece, ciudad, qué tipo de cocina quiere, presupuesto mencionado, fechas, acuerdos o compromisos. Presenta un resumen claro y pregunta si desea registrar el cliente y/o proyecto en el CRM.\n- Cualquier archivo de texto → extrae toda información relevante de clientes, precios, proyectos o pagos.\n\nACCIONES (responde SOLO JSON sin texto extra cuando el usuario confirme):\n1. Crear cliente: {"accion":"crear_cliente","nombre":"...","telefono":"...","ciudad":"...","fuente":"Facebook|Instagram|Referido|Directo|Otro"}\n2. Crear proyecto: {"accion":"crear_proyecto","nombre":"...","clienteNombre":"...","estado":"Lead|Cotizado|Contrato|Instalación|Entregado","monto":0}\n3. Actualizar estado: {"accion":"actualizar_estado","proyecto":"...","estado":"Lead|Cotizado|Contrato|Instalación|Entregado"}\n4. Registrar pago: {"accion":"registrar_pago","concepto":"...","proyectoNombre":"...","monto":0,"metodo":"Transferencia|Efectivo|Tarjeta","estadoPago":"Recibido|Pendiente"}\n\nPara análisis y consultas responde en HTML simple con <strong> y <br>. Responde siempre en español. Tono profesional y cercano.';
+
+  try{
+    const data=await r.json();const reply=data.content?.[0]?.text||'No pude procesar.';
+    aiHist.push({role:'assistant',content:reply});remTyp();
+    const jm=reply.match(/\{[\s\S]*\}/);
+    if(jm){try{await execAction(JSON.parse(jm[0]));}catch(e){addM('assistant',reply);}}
+    else addM('assistant',reply);
+  }catch(e){remTyp();addM('assistant','Error al conectar. Intenta de nuevo.');}
+};
+async function execAction(a){
+  if(a.accion==='crear_cliente'){try{await window._db.saveC({nombre:a.nombre,telefono:a.telefono||'',ciudad:a.ciudad||'',fuente:a.fuente||'Otro',notas:''});addM('assistant','Listo, cliente registrado.',{t:'Cliente: '+a.nombre,b:' · '+(a.ciudad||'')+' · '+(a.fuente||'')});}catch(e){addM('assistant','No pude guardar el cliente.');}}
+  else if(a.accion==='crear_proyecto'){try{const cs=await window._db.getCls();let cid=cs.find(c=>c.nombre.toLowerCase().includes((a.clienteNombre||'').toLowerCase()))?.id;if(!cid&&a.clienteNombre)cid=await window._db.saveC({nombre:a.clienteNombre,telefono:'',ciudad:'',fuente:'Otro',notas:''});await window._db.saveP({nombre:a.nombre,clienteId:cid||'',estado:a.estado||'Lead',monto:Number(a.monto)||0,fechaInicio:new Date().toISOString().split('T')[0],descripcion:''});addM('assistant','Proyecto creado.',{t:'Proyecto: '+a.nombre,b:' · '+(a.estado||'Lead')+' · $'+(a.monto||0).toLocaleString('es-MX')});}catch(e){addM('assistant','No pude crear el proyecto.');}}
+  else if(a.accion==='actualizar_estado'){try{const n=await window._db.updEstado(a.proyecto,a.estado);n?addM('assistant','Estado actualizado.',{t:n+' → '+a.estado,b:''}):addM('assistant','No encontré ese proyecto. Confirma el nombre.');}catch(e){addM('assistant','No pude actualizar el estado.');}}
+  else if(a.accion==='registrar_pago'){try{await window._db.savePg({concepto:a.concepto||'Pago',proyectoId:'',monto:Number(a.monto)||0,metodo:a.metodo||'Transferencia',estado:a.estadoPago||'Recibido',fecha:new Date().toISOString().split('T')[0]});addM('assistant','Pago registrado.',{t:a.concepto,b:' · $'+(a.monto||0).toLocaleString('es-MX')+' · '+(a.estadoPago||'Recibido')});}catch(e){addM('assistant','No pude registrar el pago.');}}
+}
+document.getElementById('ai-input').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';});
+document.getElementById('ai-input').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
+window.previewFotos=function(input){const preview=document.getElementById('p-fotos-preview');preview.innerHTML='';Array.from(input.files).forEach(file=>{const reader=new FileReader();reader.onload=e=>{const img=document.createElement('img');img.src=e.target.result;img.style.cssText='width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border);';preview.appendChild(img);};reader.readAsDataURL(file);});};
+
+let aiAttachments=[];
+
+window.handleAIFiles=function(input){
+  const files=Array.from(input.files);
+  const container=document.getElementById('ai-attachments');
+  container.style.display='flex';
+  files.forEach(file=>{
+    const isImg=file.type.startsWith('image/');
+    const isPDF=file.type==='application/pdf';
+    const isTxt=file.type.startsWith('text/')||file.name.match(/\.(txt|csv|doc|docx)$/i);
+    const reader=new FileReader();
+    if(isImg){
+      reader.onload=e=>{
+        const b64=e.target.result.split(',')[1];
+        aiAttachments.push({type:'image',b64,mime:file.type,name:file.name});
+        const pill=makePill(file.name,'<img src="'+e.target.result+'" style="width:20px;height:20px;object-fit:cover;border-radius:3px;">');
+        container.appendChild(pill);
+      };reader.readAsDataURL(file);
+    } else if(isPDF){
+      reader.onload=e=>{
+        const b64=e.target.result.split(',')[1];
+        aiAttachments.push({type:'pdf',b64,mime:'application/pdf',name:file.name});
+        const pill=makePill(file.name,'📄');container.appendChild(pill);
+      };reader.readAsDataURL(file);
+    } else if(isTxt){
+      reader.onload=e=>{
+        const text=e.target.result;
+        aiAttachments.push({type:'text',text,name:file.name});
+        const pill=makePill(file.name,'💬');container.appendChild(pill);
+      };reader.readAsText(file,'UTF-8');
+    }
+  });
+  input.value='';
+};
+
+function makePill(name,iconHtml){
+  const pill=document.createElement('div');
+  pill.style.cssText='display:flex;align-items:center;gap:6px;background:var(--gray-light);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--text);';
+  const ic=document.createElement('span');ic.innerHTML=iconHtml;pill.appendChild(ic);
+  const nm=document.createElement('span');nm.textContent=name.length>22?name.slice(0,20)+'…':name;pill.appendChild(nm);
+  const rm=document.createElement('button');rm.textContent='×';rm.style.cssText='background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:14px;line-height:1;padding:0 0 0 2px;';
+  rm.onclick=()=>{const idx=aiAttachments.findIndex(a=>a.name===name);if(idx>-1)aiAttachments.splice(idx,1);pill.remove();if(aiAttachments.length===0)document.getElementById('ai-attachments').style.display='none';};
+  pill.appendChild(rm);return pill;
+}
+</script>
+</body>
+</html>
