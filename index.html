@@ -134,7 +134,29 @@ tr:hover td{background:var(--gray-lighter);}
 #loading{display:flex;align-items:center;justify-content:center;height:100vh;background:var(--sidebar-bg);color:rgba(255,255,255,.5);font-size:14px;flex-direction:column;gap:12px;}
 .spinner{width:28px;height:28px;border:2px solid rgba(255,255,255,.15);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
-@media(max-width:680px){.sidebar{display:none;}.kanban{grid-template-columns:repeat(2,1fr);}.metrics{grid-template-columns:repeat(2,1fr);}}
+#menu-btn,#sb-overlay{display:none;}
+@media(max-width:680px){
+#app{height:100vh;height:100dvh;}
+.sidebar{display:flex;position:fixed;top:0;left:0;bottom:0;z-index:300;width:260px;max-width:82vw;transform:translateX(-105%);transition:transform .22s ease;}
+body.sb-open .sidebar{transform:none;box-shadow:4px 0 24px rgba(0,0,0,.35);}
+#sb-overlay{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:250;opacity:0;pointer-events:none;transition:opacity .2s;}
+body.sb-open #sb-overlay{opacity:1;pointer-events:auto;}
+#menu-btn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;margin-right:10px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:20px;line-height:1;cursor:pointer;flex-shrink:0;}
+.topbar{padding:10px 14px;}
+.topbar-title{flex:1;}
+.page-content{padding:14px !important;}
+.kanban{grid-template-columns:repeat(2,1fr);}
+.metrics{grid-template-columns:repeat(2,1fr);}
+.detail-grid{grid-template-columns:1fr;}
+.panel{overflow-x:auto;}
+.panel table{min-width:620px;}
+.panel-head{flex-wrap:wrap;gap:8px;}
+.modal{padding:20px 16px 16px;max-height:92vh;}
+.modal [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important;}
+.ai-input-area{padding:10px 12px;}
+input,select,textarea{font-size:16px !important;}
+.nav-item{padding-top:12px;padding-bottom:12px;}
+}
 .detail-back{background:none;border:1px solid var(--border-dark);border-radius:var(--radius-sm);padding:6px 12px;font-size:13px;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:6px;margin-bottom:16px;}
 .detail-back:hover{background:var(--gray-light);}
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
@@ -163,7 +185,7 @@ tr:hover td{background:var(--gray-lighter);}
     <div class="login-error" id="login-error"></div>
   </div>
 </div>
-<div id="app"><div class="layout">
+<div id="app"><div id="sb-overlay" onclick="document.body.classList.remove('sb-open')"></div><div class="layout">
   <aside class="sidebar">
     <div class="sidebar-logo"><div class="brand">Cocinas <span>Integrales</span></div><div class="sub">Veracruz — CRM</div></div>
     <nav class="nav">
@@ -189,7 +211,7 @@ tr:hover td{background:var(--gray-lighter);}
     </div>
   </aside>
   <div class="main">
-    <div class="topbar"><div class="topbar-title" id="topbar-title">Dashboard</div><div id="topbar-actions"></div></div>
+    <div class="topbar"><button id="menu-btn" type="button" aria-label="Menú" onclick="document.body.classList.toggle('sb-open')">☰</button><div class="topbar-title" id="topbar-title">Dashboard</div><div id="topbar-actions"></div></div>
     <div class="page-content" id="page-content">
       <div class="view active" id="view-dashboard">
         <div class="metrics">
@@ -289,7 +311,7 @@ const fd=ts=>{if(!ts)return'—';const d=ts.toDate?ts.toDate():new Date(ts);retu
 function applyRole(r){document.querySelectorAll('[data-roles]').forEach(el=>el.style.display=el.getAttribute('data-roles').split(',').includes(r)?'':'none');document.querySelectorAll('.admin-only').forEach(el=>el.style.display=r==='admin'?'':'none');if(r==='tecnico'){document.querySelectorAll('.precio-col').forEach(el=>el.style.display='none');document.getElementById('metric-cobrado-card').style.display='none';}}
 const VT={dashboard:'Dashboard',clientes:'Clientes',proyectos:'Proyectos',pagos:'Pagos',gastos:'Gastos',whatsapp:'WhatsApp',contratos:'Contratos',fotos:'Fotos de obra',usuarios:'Usuarios',asistente:'Asistente IA','proyecto-detalle':'Detalle de proyecto'};
 function nav(v){const isAI=v==='asistente';const pc=document.getElementById('page-content');pc.style.padding=isAI?'0':'24px';pc.style.display=isAI?'flex':'block';pc.style.flexDirection=isAI?'column':'';pc.style.overflow=isAI?'hidden':'auto';document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));const vEl=document.getElementById('view-'+v);if(vEl)vEl.classList.add('active');const nEl=document.querySelector('.nav-item[data-view="'+v+'"]');if(nEl)nEl.classList.add('active');document.getElementById('topbar-title').textContent=VT[v]||v;load(v);}
-document.querySelectorAll('.nav-item[data-view]').forEach(el=>el.addEventListener('click',()=>nav(el.getAttribute('data-view'))));
+document.querySelectorAll('.nav-item[data-view]').forEach(el=>el.addEventListener('click',()=>{nav(el.getAttribute('data-view'));document.body.classList.remove('sb-open');}));
 async function load(v){if(v==='dashboard')await ldash();else if(v==='clientes')await lclientes();else if(v==='proyectos')await lproy();else if(v==='pagos')await lpagos();else if(v==='gastos')await lgastos();else if(v==='whatsapp')await lwa();else if(v==='contratos')await lcontratos();else if(v==='usuarios')await lusuarios();else if(v==='asistente')initAI();}
 async function ldash(){const[pS,cS,wS,pgS]=await Promise.all([getDocs(collection(db,'proyectos')),getDocs(collection(db,'clientes')),getDocs(query(collection(db,'whatsapp'),where('estado','==','Sin leer'))),getDocs(collection(db,'pagos'))]);const ps=pS.docs.map(d=>({id:d.id,...d.data()}));document.getElementById('m-proyectos').textContent=ps.filter(p=>p.estado!=='Entregado').length;document.getElementById('m-clientes').textContent=cS.size;document.getElementById('m-wa').textContent=wS.size;if(role!=='tecnico'){const pgs=pgS.docs.map(d=>d.data());const cb=pgs.filter(p=>p.estado==='Recibido').reduce((s,p)=>s+(Number(p.monto)||0),0);const tot=pgs.reduce((s,p)=>s+(Number(p.monto)||0),0);document.getElementById('m-cobrado').textContent=fmt(cb);document.getElementById('m-cobrado-sub').textContent='de '+fmt(tot)+' total';}const board=document.getElementById('kanban-board');board.innerHTML='';['Lead','Cotizado','Contrato','Instalación','Entregado'].forEach(e=>{const col=ps.filter(p=>p.estado===e);const c=EC[e]||'#ccc';const cards=col.map(p=>{const m=role!=='tecnico'&&p.monto?fmt(p.monto):'';const sb=['Contrato','Instalación'].includes(e);return'<div class="k-card" style="border-left-color:'+c+'"><div class="k-card-name">'+(p.nombre||'—')+'</div><div class="k-card-meta">'+m+'</div>'+(sb?'<div class="k-card-footer"><div class="progress-bar"><div class="progress-fill" style="width:'+(p.avance||0)+'%;background:'+c+'"></div></div><span style="font-size:11px;color:var(--text-muted)">'+(p.avance||0)+'%</span></div>':'')+'</div>';}).join('')||'<div style="font-size:11px;color:var(--text-light);text-align:center;padding:8px 0;">Sin proyectos</div>';board.innerHTML+='<div class="k-col"><div class="k-col-header"><span class="k-col-title">'+e+'</span><span class="k-count">'+col.length+'</span></div>'+cards+'</div>';});}
 async function lclientes(){const s=await getDocs(query(collection(db,'clientes'),orderBy('creado','desc')));const tb=document.getElementById('clientes-tbody');if(s.empty){tb.innerHTML='<tr><td colspan="5" class="td-muted" style="text-align:center;padding:24px;">Sin clientes.</td></tr>';return;}tb.innerHTML=s.docs.map(d=>{const c=d.data();return'<tr><td><strong>'+(c.nombre||'—')+'</strong></td><td>'+(c.telefono||'—')+'</td><td class="td-muted">'+(c.ciudad||'—')+'</td><td><span class="badge bb">'+(c.fuente||'—')+'</span></td><td class="td-muted">'+fd(c.creado)+'</td></tr>';}).join('');}
